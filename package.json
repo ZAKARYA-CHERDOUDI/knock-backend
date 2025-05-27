@@ -1,0 +1,23 @@
+{
+  "name": "knock-server",
+  "version": "1.0.0",
+  "description": "Backend pour l'application Knock",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "morgan": "^1.10.0",
+    "node-fetch": "^3.3.2",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "eslint": "^9.26.0",
+    "nodemon": "^3.1.10"
+  }
+}
