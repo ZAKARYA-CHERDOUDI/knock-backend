@@ -1,39 +1,48 @@
 const express = require('express');
 const router = express.Router();
 const { sendPushNotification } = require('../utils/push-service');
+const Alerte = require('../models/alerte'); // ✅ ajouter le modèle Mongoose ici
 
-// Temporary in-memory store
+// Stock temporaire pour les abonnements
 const subscriptions = [];
 
-router.post('/subscribe', (req, res) => {
-    console.log('Received subscription request:', req.body);
-
-    const subscription = req.body;
-    
-    // Check if subscription already exists based on endpoint
-    const exists = subscriptions.some(sub => sub.endpoint === subscription.endpoint);
-
-    if (!exists) {
-        subscriptions.push(subscription);
-        console.log('=> New subscription added:', subscription);
-        res.status(201).json({ message: 'Subscribed' });
-    } else {
-        console.log('/!\\ Subscription already exists:', subscription.endpoint);
-        res.status(200).json({ message: 'Already subscribed' });
-    }
+// ✅ Route POST pour créer une alerte
+router.post('/alertes', async (req, res) => {
+  try {
+    const nouvelleAlerte = new Alerte(req.body);
+    const alerteSauvegardee = await nouvelleAlerte.save();
+    res.status(201).json(alerteSauvegardee);
+  } catch (error) {
+    console.error("Erreur alerte :", error.message);
+    res.status(400).json({ message: error.message });
+  }
 });
 
+// Route pour s’abonner
+router.post('/subscribe', (req, res) => {
+  const subscription = req.body;
+  const exists = subscriptions.find(sub => sub.endpoint === subscription.endpoint);
+
+  if (!exists) {
+    subscriptions.push(subscription);
+    console.log(' Abonnement reçu.');
+    res.status(201).json({ message: 'Abonnement enregistré' });
+  } else {
+    console.log(' Abonnement déjà existant.');
+    res.status(200).json({ message: 'Déjà abonné' });
+  }
+});
+
+// Route pour envoyer une notification
 router.post('/send-notification', async (req, res) => {
-    console.log('Received notification request:', req.body);
+  const { title, body } = req.body;
+  const payload = { title, body };
 
-    const { title, body } = req.body;
-    const payload = { title, body };
-    console.log('Payload:', payload);
-    await Promise.allSettled(
-        subscriptions.map(sub => sendPushNotification(sub, payload))
-    );
+  await Promise.allSettled(
+    subscriptions.map(sub => sendPushNotification(sub, payload))
+  );
 
-    res.status(200).json({ message: 'Push sent' });
+  res.status(200).json({ message: 'Notifications envoyées' });
 });
 
 module.exports = router;
